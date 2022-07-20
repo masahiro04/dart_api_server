@@ -5,9 +5,11 @@ environment:
   sdk: ">=2.17.0 <3.0.0"
 
 dependencies:
+  dotenv: ^4.0.1
   shelf: ^1.2.0
   shelf_router: ^1.0.0
   shelf_static: ^1.0.0
+  supabase: ^0.3.6
 
 dev_dependencies:
   http: ^0.13.0

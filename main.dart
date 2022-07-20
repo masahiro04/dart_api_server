@@ -1,14 +1,36 @@
+import 'dart:convert';
+
+import 'package:dotenv/dotenv.dart';
+import 'package:supabase/supabase.dart';
 import 'package:shelf/shelf.dart';
-import 'package:shelf/shelf_io.dart' as shelf_io;
+import 'package:shelf/shelf_io.dart' as io;
+
+import 'package:shelf_router/shelf_router.dart';
 
 void main() async {
-  final handler =
-      const Pipeline().addMiddleware(logRequests()).addHandler((_echoRequest));
-  final server = await shelf_io.serve(handler, 'localhost', 8080);
-  server.autoCompress = true;
+  final app = Router();
+  final env = DotEnv(includePlatformEnvironment: true)..load();
 
-  print('Serving at http://${server.address.host}:${server.port}');
+  final client = SupabaseClient(
+    env['SUPABASE_URL']!,
+    env['SUPABASE_API_KEY']!,
+  );
+
+  app.get('/api/blogs', (Request request) async {
+    final blogs = await client.from('blogs').select().execute();
+    print(blogs.data);
+    return Response.ok(
+      json.encode({"data": blogs.data}),
+    );
+  });
+
+  app.get('/api/blogs/<id>', (Request request, String id) async {
+    final blogs = await client.from('blogs').select().eq('id', id).execute();
+    print(blogs.data);
+    return Response.ok(
+      json.encode({"data": blogs.data}),
+    );
+  });
+
+  io.serve(app, 'localhost', 8080);
 }
-
-Response _echoRequest(Request request) =>
-    Response.ok('Request for "${request.url}"');
